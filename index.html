@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp Chat Simulator & Generator (Fix Sender & Bracket)</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f0f2f5;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* PANEL KIRI: Kontrol Input */
+        .input-panel {
+            width: 40%;
+            background-color: #ffffff;
+            border-right: 1px solid #e9edef;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+        }
+
+        .input-panel h2 {
+            font-size: 18px;
+            color: #008069;
+            margin-bottom: 5px;
+        }
+
+        /* Tab Menu Selector */
+        .tab-container {
+            display: flex;
+            border-bottom: 2px solid #f0f2f5;
+            margin-bottom: 5px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 10px;
+            background: none;
+            border: none;
+            color: #667781;
+            font-weight: bold;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-bottom: 3px solid transparent;
+            text-align: center;
+        }
+
+        .tab-btn:hover {
+            color: #008069;
+            background-color: #f8f9fa;
+        }
+
+        .tab-btn.active {
+            color: #008069;
+            border-bottom-color: #008069;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .input-panel label {
+            font-size: 13px;
+            color: #667781;
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .input-panel input[type="text"], 
+        .input-panel input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .input-panel input[type="text"]:focus {
+            border-color: #008069;
+        }
+
+        .input-panel input[type="file"] {
+            background-color: #f8f9fa;
+            cursor: pointer;
+        }
+
+        .textarea-container {
+            height: 150px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        textarea {
+            width: 100%;
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 12px;
+            resize: none;
+            outline: none;
+            background-color: #f8f9fa;
+        }
+
+        textarea:focus {
+            border-color: #008069;
+            background-color: #ffffff;
+        }
+
+        .file-input-container {
+            border: 2px dashed #008069;
+            padding: 20px;
+            border-radius: 6px;
+            text-align: center;
+            background-color: #f4fbf9;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        button.main-btn {
+            background-color: #008069;
+            color: white;
+            border: none;
+            padding: 12px;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        button.main-btn:hover {
+            background-color: #006351;
+        }
+
+        button.secondary {
+            background-color: #667781;
+            color: white;
+            border: none;
+            padding: 12px;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        button.secondary:hover {
+            background-color: #54656f;
+        }
+
+        /* PANEL KANAN */
+        .preview-area {
+            width: 60%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #e2e8f0;
+            padding: 20px;
+        }
+
+        .phone-mockup {
+            width: 375px;        
+            height: 720px;       
+            background-color: #dadbd4;
+            border: 12px solid #111b21; 
+            border-radius: 36px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;    
+            position: relative;
+        }
+
+        .phone-screen {
+            flex: 1;
+            background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png');
+            background-repeat: repeat;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background-color: #008069;
+            color: white;
+            padding: 10px 16px;
+            display: flex;
+            align-items: center;
+            width: 100%;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            height: 60px;
+            z-index: 999;
+            flex-shrink: 0;
+            position: -webkit-sticky;
+            position: sticky;
+            top: 0;
+        }
+
+        .avatar {
+            width: 38px;
+            height: 38px;
+            background-color: #e1f5fe;
+            border-radius: 50%;
+            margin-right: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #008069;
+            font-size: 13px;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .user-info .name {
+            font-size: 15px;
+            font-weight: 500;
+            max-width: 200px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .user-info .status {
+            font-size: 11px;
+            color: #d1f4cc;
+        }
+
+        .chat-container {
+            flex: 1;
+            padding: 15px 12px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .system-message {
+            align-self: center;
+            background-color: #ffeecd;
+            color: #544c3d;
+            font-size: 11px;
+            text-align: center;
+            padding: 6px 10px;
+            border-radius: 8px;
+            max-width: 90%;
+            margin: 6px 0;
+            box-shadow: 0 1px 0.5px rgba(0,0,0,0.1);
+            line-height: 1.4;
+        }
+
+        .date-divider {
+            align-self: center;
+            background-color: #ffffff;
+            color: #54656f;
+            font-size: 10.5px;
+            padding: 4px 10px;
+            border-radius: 7px;
+            margin: 10px 0;
+            text-transform: uppercase;
+            box-shadow: 0 1px 0.5px rgba(0,0,0,0.08);
+            font-weight: 500;
+        }
+
+        .chat-row {
+            display: flex;
+            width: 100%;
+            margin-bottom: 5px;
+            align-items: flex-end;
+            gap: 6px;
+        }
+
+        .chat-row.sent-row {
+            justify-content: flex-end;
+        }
+
+        .chat-row.received-row {
+            justify-content: flex-start;
+        }
+
+        .mini-avatar {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background-color: #cfd8dc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: bold;
+            color: #54656f;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .mini-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .message {
+            max-width: 80%;
+            padding: 6px 10px 5px 10px;
+            border-radius: 8px;
+            font-size: 13.5px;
+            line-height: 1.4;
+            position: relative;
+            word-wrap: break-word;
+            box-shadow: 0 1px 0.5px rgba(0,0,0,0.13);
+            color: #111b21;
+        }
+
+        .message.received {
+            background-color: #ffffff;
+            border-top-left-radius: 0;
+        }
+
+        .message.sent {
+            background-color: #d9fdd3;
+            border-top-right-radius: 0;
+        }
+
+        .message.deleted {
+            font-style: italic;
+            color: #8696a0;
+        }
+
+        .message.media-placeholder {
+            font-style: italic;
+            color: #667781;
+        }
+
+        .timestamp {
+            font-size: 9.5px;
+            color: #667781;
+            float: right;
+            margin-top: 4px;
+            margin-left: 6px;
+        }
+
+        .edited-tag {
+            font-size: 9.5px;
+            color: #667781;
+            font-style: italic;
+            margin-right: 3px;
+        }
+
+        /* RESPONSIVE STICKY SMARTPHONE */
+        @media (max-width: 900px) {
+            body {
+                flex-direction: column;
+                height: auto;
+                overflow-y: auto;
+            }
+
+            .input-panel {
+                width: 100%;
+                box-shadow: none;
+                border-right: none;
+                border-bottom: 1px solid #e9edef;
+            }
+
+            .preview-area {
+                width: 100%;
+                padding: 0;
+                background-color: #dadbd4;
+                display: block;
+            }
+
+            .phone-mockup {
+                width: 100%;
+                height: auto; 
+                border: none;
+                border-radius: 0;
+                box-shadow: none;
+                overflow: visible; 
+            }
+
+            .phone-screen {
+                height: auto;
+                overflow: visible;
+            }
+
+            .chat-header {
+                position: -webkit-sticky;
+                position: sticky;
+                top: 0;
+                left: 0;
+                width: 100%;
+                z-index: 9999; 
+            }
+
+            .chat-container {
+                overflow-y: visible; 
+                height: auto;
+                padding: 15px 12px;
+            }
+
+            .message {
+                max-width: 85%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="input-panel">
+        <h2>WhatsApp UI Generator Pro</h2>
+        
+        <div class="tab-container">
+            <button class="tab-btn active" onclick="switchTab('text-tab')">📝 Tempel Teks</button>
+            <button class="tab-btn" onclick="switchTab('file-tab')">📂 Import File (.txt / .zip)</button>
+        </div>
+
+        <div id="text-tab" class="tab-content active">
+            <label for="chat-text">Tempel Teks Percakapan WA:</label>
+            <div class="textarea-container">
+                <textarea id="chat-text" oninput="processChatSource('text')" placeholder="Tempel seluruh isi file text chat di sini..."></textarea>
+            </div>
+        </div>
+
+        <div id="file-tab" class="tab-content">
+            <label for="chat-file">Pilih Berkas Catatan Obrolan (.txt atau .zip):</label>
+            <div class="file-input-container">
+                <input type="file" id="chat-file" accept=".txt,.zip" onchange="processChatSource('file')">
+                <p style="font-size: 11px; color: #667781; margin-top: 5px;">Mendukung berkas teks biasa (.txt) atau berkas kompresi (.zip).</p>
+            </div>
+        </div>
+
+        <div style="border-top: 1px dashed #ccc; padding-top: 10px;">
+            <label for="contact-name">Nama Lawan Bicara (Pesan Kiri):</label>
+            <input type="text" id="contact-name" placeholder="Nama Lawan Bicara">
+        </div>
+
+        <div>
+            <label for="avatar-left">Foto Profil Lawan Bicara (Sisi Kiri):</label>
+            <!-- Fitur Preview Gambar agar Anda tahu gambar sudah masuk -->
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <input type="file" id="avatar-left" accept="image/*" onchange="previewAvatar(this, 'left')">
+                <img id="preview-img-left" style="width: 38px; height: 38px; border-radius: 5px; display: none; object-fit: cover; border: 1px solid #ccc;">
+            </div>
+        </div>
+
+        <div style="border-top: 1px dashed #ccc; padding-top: 10px;">
+            <label for="user-name">Nama Kamu (Pesan Kanan):</label>
+            <input type="text" id="user-name" placeholder="Nama Kamu">
+        </div>
+
+        <div>
+            <label for="avatar-right">Foto Profil Kamu (Dipakai saat ditukar):</label>
+            <!-- Fitur Preview Gambar agar Anda tahu gambar sudah masuk -->
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <input type="file" id="avatar-right" accept="image/*" onchange="previewAvatar(this, 'right')">
+                <img id="preview-img-right" style="width: 38px; height: 38px; border-radius: 5px; display: none; object-fit: cover; border: 1px solid #ccc;">
+            </div>
+        </div>
+
+        <div class="btn-group" style="margin-top: 5px;">
+            <button class="secondary" onclick="swapPositions()">Tukar Posisi 🔄</button>
+            <button class="main-btn" style="flex: 2;" onclick="generateChat()">Generate Chat 🚀</button>
+        </div>
+    </div>
+
+    <div class="preview-area">
+        <div class="phone-mockup">
+            <div class="phone-screen">
+                
+                <div class="chat-header">
+                    <div class="avatar" id="header-avatar-container">WA</div>
+                    <div class="user-info">
+                        <div class="name" id="display-contact-name">Nama Kontak</div>
+                        <div class="status">online</div>
+                    </div>
+                </div>
+
+                <div class="chat-container" id="chat-box">
+                    <div class="system-message">
+                        Silakan masukkan percakapan lewat opsi Tempel Teks atau Import File di panel kiri.
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let avatarLeftUrl = "";  
+        let avatarRightUrl = ""; 
+        let globalChatText = ""; 
+        let activeTab = "text-tab";
+
+        function parseWhatsAppLine(line) {
+            if (line.trim().startsWith('[')) {
+                const closeBracketIdx = line.indexOf(']');
+                if (closeBracketIdx > 1) {
+                    const dateTimePart = line.substring(1, closeBracketIdx);
+                    const remainder = line.substring(closeBracketIdx + 1).trim();
+                    const colonIdx = remainder.indexOf(':');
+                    
+                    if (colonIdx > 0) {
+                        const sender = remainder.substring(0, colonIdx).trim();
+                        const message = remainder.substring(colonIdx + 1).trim();
+                        const dtParts = dateTimePart.split(',');
+                        const dateStr = dtParts[0] ? dtParts[0].trim() : "Hari Ini";
+                        const timeStr = dtParts[1] ? dtParts[1].trim() : "";
+                        return { isMatch: true, dateStr, timeStr, sender, message };
+                    }
+                }
+            }
+            
+            const stdPattern = /^(\d{1,4}[\/\.-]\d{1,2}[\/\.-]\d{2,4}),?\s*(\d{1,2}\s*[:.]\s*\d{2}(?:\s*[aApP][mM])?)\s*-\s*([^:]+):\s+(.*)$/;
+            const match = line.match(stdPattern);
+            if (match) {
+                return {
+                    isMatch: true,
+                    dateStr: match[1].trim(),
+                    timeStr: match[2].trim(),
+                    sender: match[3].trim(),
+                    message: match[4].trim()
+                };
+            }
+
+            return { isMatch: false };
+        }
+
+        function switchTab(tabId) {
+            activeTab = tabId;
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            if (tabId === 'text-tab') {
+                document.querySelectorAll('.tab-btn')[0].classList.add('active');
+            } else {
+                document.querySelectorAll('.tab-btn')[1].classList.add('active');
+            }
+            document.getElementById(tabId).classList.add('active');
+        }
+
+        function processChatSource(type) {
+            if (type === 'text') {
+                globalChatText = document.getElementById('chat-text').value;
+                autoDetectSenders(globalChatText);
+            } else if (type === 'file') {
+                const fileInput = document.getElementById('chat-file');
+                if (fileInput.files && fileInput.files[0]) {
+                    const file = fileInput.files[0];
+                    
+                    if (file.name.endsWith('.zip')) {
+                        const jszip = new JSZip();
+                        jszip.loadAsync(file).then(function(zip) {
+                            const txtFile = Object.keys(zip.files).find(name => name.endsWith('.txt'));
+                            if (txtFile) {
+                                zip.files[txtFile].async("string").then(function(textData) {
+                                    globalChatText = textData;
+                                    autoDetectSenders(globalChatText);
+                                    generateChat();
+                                });
+                            } else {
+                                alert("Tidak ditemukan file teks (.txt) di dalam file ZIP.");
+                            }
+                        }).catch(function(err) {
+                            alert("Gagal membaca berkas ZIP: " + err.message);
+                        });
+                    } else {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            globalChatText = e.target.result;
+                            autoDetectSenders(globalChatText);
+                            generateChat(); 
+                        };
+                        reader.readAsText(file);
+                    }
+                }
+            }
+        }
+
+        function previewAvatar(input, side) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    if (side === 'left') {
+                        avatarLeftUrl = e.target.result;
+                        document.getElementById('preview-img-left').src = avatarLeftUrl;
+                        document.getElementById('preview-img-left').style.display = 'block';
+                    } else {
+                        avatarRightUrl = e.target.result;
+                        document.getElementById('preview-img-right').src = avatarRightUrl;
+                        document.getElementById('preview-img-right').style.display = 'block';
+                    }
+                    updateHeaderAvatarDisplay();
+                    generateChat(); 
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function updateHeaderAvatarDisplay() {
+            const headerContainer = document.getElementById('header-avatar-container');
+            const contactName = document.getElementById('contact-name').value.trim();
+
+            if (avatarLeftUrl) {
+                headerContainer.innerHTML = `<img src="${avatarLeftUrl}" alt="Avatar">`;
+            } else {
+                headerContainer.innerHTML = contactName ? contactName.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase() : "WA";
+            }
+        }
+
+        function autoDetectSenders(textData) {
+            try {
+                if (!textData || !textData.trim()) return;
+
+                const lines = textData.split('\n');
+                let detectedNames = [];
+
+                for (let i = 0; i < lines.length; i++) {
+                    if (!lines[i].trim()) continue;
+                    const res = parseWhatsAppLine(lines[i]);
+                    
+                    if (res.isMatch && res.sender) {
+                        const senderName = res.sender.trim();
+                        if (senderName.toLowerCase().includes("pesan dan panggilan terenkripsi")) continue;
+                        
+                        if (!detectedNames.includes(senderName)) {
+                            detectedNames.push(senderName);
+                        }
+                    }
+                    if (detectedNames.length >= 2) break;
+                }
+
+                if (detectedNames.length > 0) {
+                    document.getElementById('user-name').value = detectedNames[0]; 
+                    if (detectedNames[1]) {
+                        document.getElementById('contact-name').value = detectedNames[1]; 
+                    }
+                }
+                updateHeaderAvatarDisplay();
+            } catch (e) {
+                console.log("Auto-detect dilewati.", e);
+            }
+        }
+
+        function swapPositions() {
+            const contactInput = document.getElementById('contact-name');
+            const userInput = document.getElementById('user-name');
+            
+            const tempName = contactInput.value;
+            contactInput.value = userInput.value;
+            userInput.value = tempName;
+            
+            const tempAvatar = avatarLeftUrl;
+            avatarLeftUrl = avatarRightUrl;
+            avatarRightUrl = tempAvatar;
+            
+            // Update preview images
+            const previewLeft = document.getElementById('preview-img-left');
+            const previewRight = document.getElementById('preview-img-right');
+            
+            if(avatarLeftUrl) {
+                previewLeft.src = avatarLeftUrl;
+                previewLeft.style.display = 'block';
+            } else {
+                previewLeft.style.display = 'none';
+            }
+            
+            if(avatarRightUrl) {
+                previewRight.src = avatarRightUrl;
+                previewRight.style.display = 'block';
+            } else {
+                previewRight.style.display = 'none';
+            }
+            
+            updateHeaderAvatarDisplay();
+            generateChat();
+        }
+
+        function generateChat() {
+            const contactName = document.getElementById('contact-name').value.trim();
+            const userName = document.getElementById('user-name').value.trim();
+            const chatBox = document.getElementById('chat-box');
+
+            document.getElementById('display-contact-name').innerText = contactName ? contactName : "Nama Kontak";
+            updateHeaderAvatarDisplay();
+
+            chatBox.innerHTML = "";
+
+            const encryptionNode = document.createElement('div');
+            encryptionNode.className = 'system-message';
+            encryptionNode.innerText = 'Pesan dan panggilan terenkripsi secara end-to-end. Tidak seorang pun di luar chat ini, termasuk WhatsApp, yang dapat membaca atau mendengarkannya.';
+            chatBox.appendChild(encryptionNode);
+
+            if (!globalChatText || !globalChatText.trim()) return;
+
+            const lines = globalChatText.split('\n');
+            let currentDisplayDate = "";
+            let lastMessageNode = null;
+
+            lines.forEach(line => {
+                try {
+                    if (!line.trim()) return;
+                    const res = parseWhatsAppLine(line);
+
+                    if (res.isMatch) {
+                        const dateStr = res.dateStr;
+                        const timeStr = res.timeStr; 
+                        const sender = res.sender;
+                        let messageContent = res.message;
+
+                        if (sender.toLowerCase().includes("pesan dan panggilan terenkripsi") || messageContent.toLowerCase().includes("terenkripsi secara end-to-end")) {
+                            return;
+                        }
+
+                        if (dateStr !== currentDisplayDate) {
+                            currentDisplayDate = dateStr;
+                            const dateNode = document.createElement('div');
+                            dateNode.className = 'date-divider';
+                            dateNode.innerText = formatIndonesianDate(dateStr);
+                            chatBox.appendChild(dateNode);
+                        }
+
+                        const rowNode = document.createElement('div');
+                        const isSent = (userName && sender.toLowerCase() === userName.toLowerCase());
+                        
+                        rowNode.className = isSent ? 'chat-row sent-row' : 'chat-row received-row';
+
+                        const messageNode = document.createElement('div');
+                        messageNode.className = isSent ? 'message sent' : 'message received';
+
+                        let editedTagHtml = "";
+                        if (messageContent.includes("<Pesan ini diedit>")) {
+                            editedTagHtml = `<span class="edited-tag">Diedit</span>`;
+                            messageContent = messageContent.replace("<Pesan ini diedit>", "");
+                        }
+
+                        if (messageContent.includes("Anda menghapus pesan ini") || messageContent.includes("Pesan ini telah dihapus")) {
+                            messageNode.classList.add('deleted');
+                        }
+                        
+                        if (messageContent.includes("Media tidak disertakan")) {
+                            messageNode.classList.add('media-placeholder');
+                            messageContent = "📷 Media tidak disertakan";
+                        }
+
+                        messageNode.innerHTML = `
+                            <span class="text-content"></span>
+                            <span class="timestamp">${editedTagHtml}${timeStr}</span>
+                        `;
+                        
+                        messageNode.querySelector('.text-content').innerText = messageContent;
+
+                        if (!isSent) {
+                            // Avatar Kiri (Lawan Bicara) ditampilkan di sebelah gelembung chat
+                            const miniAvatarNode = document.createElement('div');
+                            miniAvatarNode.className = 'mini-avatar';
+                            if (avatarLeftUrl) {
+                                miniAvatarNode.innerHTML = `<img src="${avatarLeftUrl}" alt="Them">`;
+                            } else {
+                                miniAvatarNode.innerText = sender ? sender.substring(0,2).toUpperCase() : "WA";
+                            }
+                            rowNode.appendChild(miniAvatarNode);
+                        }
+
+                        // Untuk pesan yang dikirim (kanan), avatar kecil DITIADAKAN seperti aslinya
+                        rowNode.appendChild(messageNode);
+                        chatBox.appendChild(rowNode);
+                        lastMessageNode = messageNode; 
+                    } else {
+                        // Memasukkan pesan baris baru multi-line (enter)
+                        if (lastMessageNode) {
+                            const textSpan = lastMessageNode.querySelector('.text-content');
+                            if (textSpan) {
+                                textSpan.innerText += "\n" + line.trim();
+                            }
+                        }
+                    }
+                } catch (err) {
+                    console.error("Gagal memproses baris chat.", err);
+                }
+            });
+
+            if(window.innerWidth > 900) {
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }
+        }
+
+        function formatIndonesianDate(dateStr) {
+            if (dateStr === "Hari Ini") return dateStr;
+            const months = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+            const parts = dateStr.split(/[\/\.-]/);
+            if (parts.length === 3) {
+                let day = parseInt(parts[0], 10);
+                let monthIndex = parseInt(parts[1], 10) - 1;
+                let year = parts[2].trim();
+                
+                if (parts[0].length === 4) {
+                    year = parts[0];
+                    day = parseInt(parts[2], 10);
+                }
+                
+                if (year.length === 2) year = "20" + year;
+                if (monthIndex >= 0 && monthIndex < 12) {
+                    return `${day} ${months[monthIndex]} ${year}`;
+                }
+            }
+            if (parts.length === 2) {
+                let day = parseInt(parts[0], 10);
+                let monthIndex = parseInt(parts[1], 10) - 1;
+                if (monthIndex >= 0 && monthIndex < 12) {
+                    return `${day} ${months[monthIndex]}`;
+                }
+            }
+            return dateStr;
+        }
+    </script>
+</body>
+</html>

@@ -4,7 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WhatsApp Chat Simulator & Generator (Fix Sender & Bracket)</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js">
+document.getElementById('chat-file').addEventListener('click', function() {
+    this.value = '';
+});
+
+</script>
     <style>
         * {
             margin: 0;
@@ -455,7 +460,7 @@
         <div id="file-tab" class="tab-content">
             <label for="chat-file">Pilih Berkas Catatan Obrolan (.txt atau .zip):</label>
             <div class="file-input-container">
-                <input type="file" id="chat-file" accept=".txt,.zip" onchange="processChatSource('file')">
+                <input type="file" id="chat-file" accept=".txt,.zip,.TXT,.ZIP" onchange="processChatSource('file')">
                 <p style="font-size: 11px; color: #667781; margin-top: 5px;">Mendukung berkas teks biasa (.txt) atau berkas kompresi (.zip).</p>
             </div>
         </div>
@@ -581,7 +586,10 @@
                     if (file.name.endsWith('.zip')) {
                         const jszip = new JSZip();
                         jszip.loadAsync(file).then(function(zip) {
-                            const txtFile = Object.keys(zip.files).find(name => name.endsWith('.txt'));
+                            const txtFile = Object.keys(zip.files).find(name =>
+                                !zip.files[name].dir &&
+                                name.toLowerCase().endsWith('.txt')
+                            );
                             if (txtFile) {
                                 zip.files[txtFile].async("string").then(function(textData) {
                                     globalChatText = textData;
@@ -601,7 +609,7 @@
                             autoDetectSenders(globalChatText);
                             generateChat(); 
                         };
-                        reader.readAsText(file);
+                        reader.readAsText(file, 'utf-8');
                     }
                 }
             }
@@ -843,6 +851,11 @@
             }
             return dateStr;
         }
-    </script>
+    
+document.getElementById('chat-file').addEventListener('click', function() {
+    this.value = '';
+});
+
+</script>
 </body>
 </html>

@@ -6,6 +6,66 @@
     <title>WhatsApp Chat Simulator & Generator (Fix Sender & Bracket)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <style>
+        :root {
+            /* Tema Terang (Light Mode) */
+            --bg-body: #f0f2f5;
+            --panel-bg: #ffffff;
+            --border-color: #e9edef;
+            --wa-green: #008069;
+            --wa-green-hover: #006351;
+            --text-main: #111b21;
+            --text-muted: #667781;
+            
+            /* Warna Pratinjau Chat Terang */
+            --phone-bg: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png');
+            --chat-bg-color: #e2e8f0;
+            --header-bg: #008069;
+            --header-text: #ffffff;
+            --msg-received-bg: #ffffff;
+            --msg-sent-bg: #d9fdd3;
+            --sys-msg-bg: #ffeecd;
+            --sys-msg-text: #544c3d;
+            --date-bg: #ffffff;
+            --date-text: #54656f;
+            
+            /* Input Bar Bawah (Terang) */
+            --input-bar-bg: #f0f2f5;
+            --input-box-bg: #ffffff;
+            --icon-color: #54656f;
+            --mic-bg: #00a884;
+            --mic-icon: #ffffff;
+        }
+
+        [data-theme="dark"] {
+            /* Tema Gelap (Dark Mode) */
+            --bg-body: #111b21;
+            --panel-bg: #202c33;
+            --border-color: #222e35;
+            --wa-green: #00a884;
+            --wa-green-hover: #008f6f;
+            --text-main: #e9edef;
+            --text-muted: #8696a0;
+            
+            /* Warna Pratinjau Chat Gelap */
+            --phone-bg: none;
+            --chat-bg-color: #0b141a;
+            --header-bg: #202c33;
+            --header-text: #e9edef;
+            --msg-received-bg: #202c33;
+            --msg-sent-bg: #005c4b;
+            --sys-msg-bg: #182229;
+            --sys-msg-text: #ffd279;
+            --date-bg: #182229;
+            --date-text: #8696a0;
+            
+            /* Input Bar Bawah (Gelap) */
+            --input-bar-bg: #0b141a;
+            --input-box-bg: #2a3942;
+            --icon-color: #8696a0;
+            --mic-bg: #21c063;
+            --mic-icon: #111b21;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -14,33 +74,55 @@
         }
 
         body {
-            background-color: #f0f2f5;
+            background-color: var(--bg-body);
+            color: var(--text-main);
             display: flex;
             min-height: 100vh;
+            transition: background-color 0.3s;
         }
 
         /* PANEL KIRI: Kontrol Input */
         .input-panel {
             width: 40%;
-            background-color: #ffffff;
-            border-right: 1px solid #e9edef;
+            background-color: var(--panel-bg);
+            border-right: 1px solid var(--border-color);
             padding: 20px;
             display: flex;
             flex-direction: column;
             gap: 15px;
             box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+            transition: background-color 0.3s;
+            overflow-y: auto;
         }
 
         .input-panel h2 {
             font-size: 18px;
-            color: #008069;
+            color: var(--wa-green);
             margin-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .theme-toggle-btn {
+            background: none;
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 5px 10px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+
+        .theme-toggle-btn:hover {
+            background-color: var(--border-color);
         }
 
         /* Tab Menu Selector */
         .tab-container {
             display: flex;
-            border-bottom: 2px solid #f0f2f5;
+            border-bottom: 2px solid var(--border-color);
             margin-bottom: 5px;
         }
 
@@ -49,7 +131,7 @@
             padding: 10px;
             background: none;
             border: none;
-            color: #667781;
+            color: var(--text-muted);
             font-weight: bold;
             font-size: 13px;
             cursor: pointer;
@@ -59,13 +141,13 @@
         }
 
         .tab-btn:hover {
-            color: #008069;
-            background-color: #f8f9fa;
+            color: var(--wa-green);
+            background-color: var(--bg-body);
         }
 
         .tab-btn.active {
-            color: #008069;
-            border-bottom-color: #008069;
+            color: var(--wa-green);
+            border-bottom-color: var(--wa-green);
         }
 
         .tab-content {
@@ -80,7 +162,7 @@
 
         .input-panel label {
             font-size: 13px;
-            color: #667781;
+            color: var(--text-muted);
             font-weight: bold;
             display: block;
             margin-bottom: 5px;
@@ -89,11 +171,12 @@
         .input-panel input[type="file"] {
             width: 100%;
             padding: 10px;
-            border: 1px solid #ccc;
+            border: 1px solid var(--border-color);
             border-radius: 6px;
             font-size: 14px;
             outline: none;
-            background-color: #f8f9fa;
+            background-color: var(--bg-body);
+            color: var(--text-main);
             cursor: pointer;
         }
 
@@ -107,26 +190,27 @@
             width: 100%;
             flex: 1;
             padding: 12px;
-            border: 1px solid #ccc;
+            border: 1px solid var(--border-color);
             border-radius: 6px;
             font-family: 'Courier New', Courier, monospace;
             font-size: 12px;
             resize: none;
             outline: none;
-            background-color: #f8f9fa;
+            background-color: var(--bg-body);
+            color: var(--text-main);
         }
 
         textarea:focus {
-            border-color: #008069;
-            background-color: #ffffff;
+            border-color: var(--wa-green);
+            background-color: var(--panel-bg);
         }
 
         .file-input-container {
-            border: 2px dashed #008069;
+            border: 2px dashed var(--wa-green);
             padding: 20px;
             border-radius: 6px;
             text-align: center;
-            background-color: #f4fbf9;
+            background-color: rgba(0, 128, 105, 0.05);
         }
 
         .btn-group {
@@ -136,7 +220,7 @@
         }
 
         button.main-btn {
-            background-color: #008069;
+            background-color: var(--wa-green);
             color: white;
             border: none;
             padding: 12px;
@@ -148,11 +232,11 @@
         }
 
         button.main-btn:hover {
-            background-color: #006351;
+            background-color: var(--wa-green-hover);
         }
 
         button.secondary {
-            background-color: #667781;
+            background-color: var(--text-muted);
             color: white;
             border: none;
             padding: 12px;
@@ -164,7 +248,7 @@
         }
         
         button.secondary:hover {
-            background-color: #54656f;
+            opacity: 0.8;
         }
 
         /* PANEL KANAN */
@@ -173,14 +257,14 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background-color: #e2e8f0;
+            background-color: var(--bg-body);
             padding: 20px;
         }
 
         .phone-mockup {
             width: 375px;        
             height: 720px;       
-            background-color: #dadbd4;
+            background-color: var(--border-color);
             border: 12px solid #111b21; 
             border-radius: 36px;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
@@ -192,7 +276,8 @@
 
         .phone-screen {
             flex: 1;
-            background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png');
+            background-color: var(--chat-bg-color);
+            background-image: var(--phone-bg);
             background-repeat: repeat;
             display: flex;
             flex-direction: column;
@@ -200,9 +285,10 @@
             overflow: hidden;
         }
 
+        /* HEADER CHAT */
         .chat-header {
-            background-color: #008069;
-            color: white;
+            background-color: var(--header-bg);
+            color: var(--header-text);
             padding: 10px 16px;
             display: flex;
             align-items: center;
@@ -211,7 +297,6 @@
             height: 60px;
             z-index: 999;
             flex-shrink: 0;
-            position: -webkit-sticky;
             position: sticky;
             top: 0;
         }
@@ -249,9 +334,10 @@
 
         .user-info .status {
             font-size: 11px;
-            color: #d1f4cc;
+            color: rgba(255, 255, 255, 0.8);
         }
 
+        /* CHAT CONTAINER */
         .chat-container {
             flex: 1;
             padding: 15px 12px;
@@ -262,8 +348,8 @@
 
         .system-message {
             align-self: center;
-            background-color: #ffeecd;
-            color: #544c3d;
+            background-color: var(--sys-msg-bg);
+            color: var(--sys-msg-text);
             font-size: 11px;
             text-align: center;
             padding: 6px 10px;
@@ -276,8 +362,8 @@
 
         .date-divider {
             align-self: center;
-            background-color: #ffffff;
-            color: #54656f;
+            background-color: var(--date-bg);
+            color: var(--date-text);
             font-size: 10.5px;
             padding: 4px 10px;
             border-radius: 7px;
@@ -333,32 +419,32 @@
             position: relative;
             word-wrap: break-word;
             box-shadow: 0 1px 0.5px rgba(0,0,0,0.13);
-            color: #111b21;
+            color: var(--text-main);
         }
 
         .message.received {
-            background-color: #ffffff;
+            background-color: var(--msg-received-bg);
             border-top-left-radius: 0;
         }
 
         .message.sent {
-            background-color: #d9fdd3;
+            background-color: var(--msg-sent-bg);
             border-top-right-radius: 0;
         }
 
         .message.deleted {
             font-style: italic;
-            color: #8696a0;
+            color: var(--text-muted);
         }
 
         .message.media-placeholder {
             font-style: italic;
-            color: #667781;
+            color: var(--text-muted);
         }
 
         .timestamp {
             font-size: 9.5px;
-            color: #667781;
+            color: var(--text-muted);
             float: right;
             margin-top: 4px;
             margin-left: 6px;
@@ -366,10 +452,72 @@
 
         .edited-tag {
             font-size: 9.5px;
-            color: #667781;
+            color: var(--text-muted);
             font-style: italic;
             margin-right: 3px;
         }
+
+        /* INPUT BAR BAWAH */
+        .chat-input-bar {
+            background-color: var(--input-bar-bg);
+            padding: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 999;
+            flex-shrink: 0;
+        }
+
+        .input-pill {
+            flex: 1;
+            background-color: var(--input-box-bg);
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            min-height: 44px;
+        }
+
+        .input-pill svg {
+            fill: var(--icon-color);
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .input-pill .input-placeholder {
+            flex: 1;
+            color: var(--text-muted);
+            font-size: 16px;
+            margin: 0 10px;
+            pointer-events: none;
+        }
+
+        .input-icons-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .mic-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background-color: var(--mic-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+
+        .mic-btn svg {
+            fill: var(--mic-icon);
+            width: 20px;
+            height: 20px;
+        }
+
 
         /* RESPONSIVE STICKY SMARTPHONE */
         @media (max-width: 900px) {
@@ -383,47 +531,22 @@
                 width: 100%;
                 box-shadow: none;
                 border-right: none;
-                border-bottom: 1px solid #e9edef;
+                border-bottom: 1px solid var(--border-color);
             }
 
             .preview-area {
                 width: 100%;
                 padding: 0;
-                background-color: #dadbd4;
+                background-color: var(--bg-body);
                 display: block;
             }
 
             .phone-mockup {
                 width: 100%;
-                height: auto; 
+                height: 100vh; 
                 border: none;
                 border-radius: 0;
                 box-shadow: none;
-                overflow: visible; 
-            }
-
-            .phone-screen {
-                height: auto;
-                overflow: visible;
-            }
-
-            .chat-header {
-                position: -webkit-sticky;
-                position: sticky;
-                top: 0;
-                left: 0;
-                width: 100%;
-                z-index: 9999; 
-            }
-
-            .chat-container {
-                overflow-y: visible; 
-                height: auto;
-                padding: 15px 12px;
-            }
-
-            .message {
-                max-width: 85%;
             }
         }
     </style>
@@ -431,7 +554,10 @@
 <body>
 
     <div class="input-panel">
-        <h2>WhatsApp UI Generator Pro</h2>
+        <h2>
+            WhatsApp UI Generator
+            <button class="theme-toggle-btn" onclick="toggleTheme()">☀️ / 🌙 Tema</button>
+        </h2>
         
         <div class="tab-container">
             <button class="tab-btn active" onclick="switchTab('text-tab')">📝 Tempel Teks</button>
@@ -449,15 +575,15 @@
             <label for="chat-file">Pilih Berkas Catatan Obrolan (.txt atau .zip):</label>
             <div class="file-input-container">
                 <input type="file" id="chat-file" accept=".txt,.zip,.TXT,.ZIP" onchange="processChatSource('file')">
-                <p style="font-size: 11px; color: #667781; margin-top: 5px;">Mendukung berkas teks biasa (.txt) atau berkas kompresi (.zip).</p>
+                <p style="font-size: 11px; color: var(--text-muted); margin-top: 5px;">Mendukung berkas teks biasa (.txt) atau berkas kompresi (.zip).</p>
             </div>
         </div>
 
-        <div style="border-top: 1px dashed #ccc; padding-top: 15px; margin-top: 5px;">
+        <div style="border-top: 1px dashed var(--border-color); padding-top: 15px; margin-top: 5px;">
             <label for="avatar-partner">Foto Profil Lawan Bicara (Kiri):</label>
             <div style="display: flex; gap: 10px; align-items: center;">
                 <input type="file" id="avatar-partner" accept="image/*" onchange="previewPartnerAvatar(this)">
-                <img id="preview-img-partner" style="width: 38px; height: 38px; border-radius: 5px; display: none; object-fit: cover; border: 1px solid #ccc;">
+                <img id="preview-img-partner" style="width: 38px; height: 38px; border-radius: 5px; display: none; object-fit: cover; border: 1px solid var(--border-color);">
             </div>
         </div>
 
@@ -485,6 +611,34 @@
                     </div>
                 </div>
 
+                <!-- Input Bar Bawah Sesuai Gambar -->
+                <div class="chat-input-bar">
+                    <div class="input-pill">
+                        <!-- Ikon Emoji (Smiley) -->
+                        <svg viewBox="0 0 24 24">
+                            <path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm0-2a8 8 0 1 0 0-16 8 8 0 0 0 0 16zm-3.5-7.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm7 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zM12 16.5c-2.33 0-4.32-1.45-5.12-3.5h1.17c.67 1.45 2.19 2.4 3.95 2.4s3.28-.95 3.95-2.4h1.17c-.8 2.05-2.79 3.5-5.12 3.5z"/>
+                        </svg>
+                        
+                        <div class="input-placeholder">Ketik pesan</div>
+                        
+                        <div class="input-icons-right">
+                            <!-- Ikon Paperclip -->
+                            <svg viewBox="0 0 24 24">
+                                <path d="M20.5 13.25l-9.5 9.5c-2.48 2.48-6.52 2.48-9 0-2.48-2.48-2.48-6.52 0-9l9.5-9.5a4.243 4.243 0 0 1 6 6l-9.5 9.5a1.414 1.414 0 0 1-2-2l8.5-8.5-1.5-1.5-8.5 8.5a3.536 3.536 0 0 0 5 5l9.5-9.5a6.364 6.364 0 0 0-9-9l-9.5 9.5 1.5 1.5 9.5-9.5a4.243 4.243 0 0 1 6 6z"/>
+                            </svg>
+                            <!-- Ikon Kamera -->
+                            <svg viewBox="0 0 24 24">
+                                <path d="M21 7h-3.2l-1.5-2h-8.6l-1.5 2H3c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2zm0 12H3V9h4.05l1.83-2.44h6.24l1.83 2.44H21v10zM12 10.5c-2.48 0-4.5 2.02-4.5 4.5s2.02 4.5 4.5 4.5 4.5-2.02 4.5-4.5-2.02-4.5-4.5-4.5zm0 7.5c-1.65 0-3-1.35-3-3s1.35-3 3-3 3 1.35 3 3-1.35 3-3 3z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <!-- Tombol Mic -->
+                    <div class="mic-btn">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M12 14c1.66 0 3-1.34 3-3V6c0-1.66-1.34-3-3-3S9 4.34 9 6v5c0 1.66 1.34 3 3 3zm5-3c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+                        </svg>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -496,6 +650,15 @@
         
         let contactName = "";
         let userName = "";
+
+        function toggleTheme() {
+            const body = document.body;
+            if (body.getAttribute('data-theme') === 'dark') {
+                body.removeAttribute('data-theme');
+            } else {
+                body.setAttribute('data-theme', 'dark');
+            }
+        }
 
         function parseWhatsAppLine(line) {
             try {
@@ -529,7 +692,7 @@
                     };
                 }
             } catch (err) {
-                // Abaikan baris yang gagal di-parse agar tidak membuat aplikasi crash
+                // Abaikan baris error
             }
             return { isMatch: false };
         }
@@ -591,7 +754,6 @@
                             alert("Gagal membaca berkas ZIP: " + err.message);
                         });
                     } else {
-                        // Tambahan Error Handling File TXT
                         try {
                             const reader = new FileReader();
                             reader.onload = function(e) {
@@ -662,7 +824,6 @@
         }
 
         function swapPositions() {
-            // Tukar variabel internal nama
             const tempName = contactName;
             contactName = userName;
             userName = tempName;
@@ -802,7 +963,6 @@
             return dateStr;
         }
 
-        // Reset input file biar bisa upload file yang sama berturut-turut
         document.getElementById('chat-file').addEventListener('click', function() {
             this.value = '';
         });

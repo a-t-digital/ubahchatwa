@@ -4,12 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WhatsApp Chat Simulator & Generator (Fix Sender & Bracket)</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js">
-document.getElementById('chat-file').addEventListener('click', function() {
-    this.value = '';
-});
-
-</script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -91,7 +86,6 @@ document.getElementById('chat-file').addEventListener('click', function() {
             margin-bottom: 5px;
         }
 
-        .input-panel input[type="text"], 
         .input-panel input[type="file"] {
             width: 100%;
             padding: 10px;
@@ -99,13 +93,6 @@ document.getElementById('chat-file').addEventListener('click', function() {
             border-radius: 6px;
             font-size: 14px;
             outline: none;
-        }
-
-        .input-panel input[type="text"]:focus {
-            border-color: #008069;
-        }
-
-        .input-panel input[type="file"] {
             background-color: #f8f9fa;
             cursor: pointer;
         }
@@ -145,6 +132,7 @@ document.getElementById('chat-file').addEventListener('click', function() {
         .btn-group {
             display: flex;
             gap: 10px;
+            margin-top: auto; 
         }
 
         button.main-btn {
@@ -465,35 +453,15 @@ document.getElementById('chat-file').addEventListener('click', function() {
             </div>
         </div>
 
-        <div style="border-top: 1px dashed #ccc; padding-top: 10px;">
-            <label for="contact-name">Nama Lawan Bicara (Pesan Kiri):</label>
-            <input type="text" id="contact-name" placeholder="Nama Lawan Bicara">
-        </div>
-
-        <div>
-            <label for="avatar-left">Foto Profil Lawan Bicara (Sisi Kiri):</label>
-            <!-- Fitur Preview Gambar agar Anda tahu gambar sudah masuk -->
+        <div style="border-top: 1px dashed #ccc; padding-top: 15px; margin-top: 5px;">
+            <label for="avatar-partner">Foto Profil Lawan Bicara (Kiri):</label>
             <div style="display: flex; gap: 10px; align-items: center;">
-                <input type="file" id="avatar-left" accept="image/*" onchange="previewAvatar(this, 'left')">
-                <img id="preview-img-left" style="width: 38px; height: 38px; border-radius: 5px; display: none; object-fit: cover; border: 1px solid #ccc;">
+                <input type="file" id="avatar-partner" accept="image/*" onchange="previewPartnerAvatar(this)">
+                <img id="preview-img-partner" style="width: 38px; height: 38px; border-radius: 5px; display: none; object-fit: cover; border: 1px solid #ccc;">
             </div>
         </div>
 
-        <div style="border-top: 1px dashed #ccc; padding-top: 10px;">
-            <label for="user-name">Nama Kamu (Pesan Kanan):</label>
-            <input type="text" id="user-name" placeholder="Nama Kamu">
-        </div>
-
-        <div>
-            <label for="avatar-right">Foto Profil Kamu (Dipakai saat ditukar):</label>
-            <!-- Fitur Preview Gambar agar Anda tahu gambar sudah masuk -->
-            <div style="display: flex; gap: 10px; align-items: center;">
-                <input type="file" id="avatar-right" accept="image/*" onchange="previewAvatar(this, 'right')">
-                <img id="preview-img-right" style="width: 38px; height: 38px; border-radius: 5px; display: none; object-fit: cover; border: 1px solid #ccc;">
-            </div>
-        </div>
-
-        <div class="btn-group" style="margin-top: 5px;">
+        <div class="btn-group" style="margin-top: 20px;">
             <button class="secondary" onclick="swapPositions()">Tukar Posisi 🔄</button>
             <button class="main-btn" style="flex: 2;" onclick="generateChat()">Generate Chat 🚀</button>
         </div>
@@ -522,42 +490,47 @@ document.getElementById('chat-file').addEventListener('click', function() {
     </div>
 
     <script>
-        let avatarLeftUrl = "";  
-        let avatarRightUrl = ""; 
         let globalChatText = ""; 
         let activeTab = "text-tab";
+        let partnerAvatarUrl = "";
+        
+        let contactName = "";
+        let userName = "";
 
         function parseWhatsAppLine(line) {
-            if (line.trim().startsWith('[')) {
-                const closeBracketIdx = line.indexOf(']');
-                if (closeBracketIdx > 1) {
-                    const dateTimePart = line.substring(1, closeBracketIdx);
-                    const remainder = line.substring(closeBracketIdx + 1).trim();
-                    const colonIdx = remainder.indexOf(':');
-                    
-                    if (colonIdx > 0) {
-                        const sender = remainder.substring(0, colonIdx).trim();
-                        const message = remainder.substring(colonIdx + 1).trim();
-                        const dtParts = dateTimePart.split(',');
-                        const dateStr = dtParts[0] ? dtParts[0].trim() : "Hari Ini";
-                        const timeStr = dtParts[1] ? dtParts[1].trim() : "";
-                        return { isMatch: true, dateStr, timeStr, sender, message };
+            try {
+                if (line.trim().startsWith('[')) {
+                    const closeBracketIdx = line.indexOf(']');
+                    if (closeBracketIdx > 1) {
+                        const dateTimePart = line.substring(1, closeBracketIdx);
+                        const remainder = line.substring(closeBracketIdx + 1).trim();
+                        const colonIdx = remainder.indexOf(':');
+                        
+                        if (colonIdx > 0) {
+                            const sender = remainder.substring(0, colonIdx).trim();
+                            const message = remainder.substring(colonIdx + 1).trim();
+                            const dtParts = dateTimePart.split(',');
+                            const dateStr = dtParts[0] ? dtParts[0].trim() : "Hari Ini";
+                            const timeStr = dtParts[1] ? dtParts[1].trim() : "";
+                            return { isMatch: true, dateStr, timeStr, sender, message };
+                        }
                     }
                 }
+                
+                const stdPattern = /^(\d{1,4}[\/\.-]\d{1,2}[\/\.-]\d{2,4}),?\s*(\d{1,2}\s*[:.]\s*\d{2}(?:\s*[aApP][mM])?)\s*-\s*([^:]+):\s+(.*)$/;
+                const match = line.match(stdPattern);
+                if (match) {
+                    return {
+                        isMatch: true,
+                        dateStr: match[1].trim(),
+                        timeStr: match[2].trim(),
+                        sender: match[3].trim(),
+                        message: match[4].trim()
+                    };
+                }
+            } catch (err) {
+                // Abaikan baris yang gagal di-parse agar tidak membuat aplikasi crash
             }
-            
-            const stdPattern = /^(\d{1,4}[\/\.-]\d{1,2}[\/\.-]\d{2,4}),?\s*(\d{1,2}\s*[:.]\s*\d{2}(?:\s*[aApP][mM])?)\s*-\s*([^:]+):\s+(.*)$/;
-            const match = line.match(stdPattern);
-            if (match) {
-                return {
-                    isMatch: true,
-                    dateStr: match[1].trim(),
-                    timeStr: match[2].trim(),
-                    sender: match[3].trim(),
-                    message: match[4].trim()
-                };
-            }
-
             return { isMatch: false };
         }
 
@@ -574,16 +547,31 @@ document.getElementById('chat-file').addEventListener('click', function() {
             document.getElementById(tabId).classList.add('active');
         }
 
+        function previewPartnerAvatar(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    partnerAvatarUrl = e.target.result;
+                    document.getElementById('preview-img-partner').src = partnerAvatarUrl;
+                    document.getElementById('preview-img-partner').style.display = 'block';
+                    updateHeaderAvatarDisplay();
+                    generateChat();
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
         function processChatSource(type) {
             if (type === 'text') {
                 globalChatText = document.getElementById('chat-text').value;
                 autoDetectSenders(globalChatText);
+                generateChat();
             } else if (type === 'file') {
                 const fileInput = document.getElementById('chat-file');
                 if (fileInput.files && fileInput.files[0]) {
                     const file = fileInput.files[0];
                     
-                    if (file.name.endsWith('.zip')) {
+                    if (file.name.toLowerCase().endsWith('.zip')) {
                         const jszip = new JSZip();
                         jszip.loadAsync(file).then(function(zip) {
                             const txtFile = Object.keys(zip.files).find(name =>
@@ -603,46 +591,39 @@ document.getElementById('chat-file').addEventListener('click', function() {
                             alert("Gagal membaca berkas ZIP: " + err.message);
                         });
                     } else {
-                        const reader = new FileReader();
-                        reader.onload = function(e) {
-                            globalChatText = e.target.result;
-                            autoDetectSenders(globalChatText);
-                            generateChat(); 
-                        };
-                        reader.readAsText(file, 'utf-8');
+                        // Tambahan Error Handling File TXT
+                        try {
+                            const reader = new FileReader();
+                            reader.onload = function(e) {
+                                globalChatText = e.target.result;
+                                autoDetectSenders(globalChatText);
+                                generateChat(); 
+                            };
+                            reader.onerror = function() {
+                                alert("Gagal membaca file .txt, pastikan filenya tidak rusak.");
+                            };
+                            reader.readAsText(file, 'utf-8');
+                        } catch (err) {
+                            alert("Terjadi kesalahan saat memproses file txt.");
+                        }
                     }
                 }
-            }
-        }
-
-        function previewAvatar(input, side) {
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    if (side === 'left') {
-                        avatarLeftUrl = e.target.result;
-                        document.getElementById('preview-img-left').src = avatarLeftUrl;
-                        document.getElementById('preview-img-left').style.display = 'block';
-                    } else {
-                        avatarRightUrl = e.target.result;
-                        document.getElementById('preview-img-right').src = avatarRightUrl;
-                        document.getElementById('preview-img-right').style.display = 'block';
-                    }
-                    updateHeaderAvatarDisplay();
-                    generateChat(); 
-                }
-                reader.readAsDataURL(input.files[0]);
             }
         }
 
         function updateHeaderAvatarDisplay() {
             const headerContainer = document.getElementById('header-avatar-container');
-            const contactName = document.getElementById('contact-name').value.trim();
-
-            if (avatarLeftUrl) {
-                headerContainer.innerHTML = `<img src="${avatarLeftUrl}" alt="Avatar">`;
+            const displayContactName = document.getElementById('display-contact-name');
+            
+            displayContactName.innerText = contactName ? contactName : "Nama Kontak";
+            
+            if (partnerAvatarUrl) {
+                headerContainer.innerHTML = `<img src="${partnerAvatarUrl}" alt="Avatar">`;
+            } else if (contactName) {
+                const initials = contactName.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase();
+                headerContainer.innerHTML = initials;
             } else {
-                headerContainer.innerHTML = contactName ? contactName.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase() : "WA";
+                headerContainer.innerHTML = "WA";
             }
         }
 
@@ -669,9 +650,9 @@ document.getElementById('chat-file').addEventListener('click', function() {
                 }
 
                 if (detectedNames.length > 0) {
-                    document.getElementById('user-name').value = detectedNames[0]; 
+                    userName = detectedNames[0]; 
                     if (detectedNames[1]) {
-                        document.getElementById('contact-name').value = detectedNames[1]; 
+                        contactName = detectedNames[1]; 
                     }
                 }
                 updateHeaderAvatarDisplay();
@@ -681,45 +662,17 @@ document.getElementById('chat-file').addEventListener('click', function() {
         }
 
         function swapPositions() {
-            const contactInput = document.getElementById('contact-name');
-            const userInput = document.getElementById('user-name');
-            
-            const tempName = contactInput.value;
-            contactInput.value = userInput.value;
-            userInput.value = tempName;
-            
-            const tempAvatar = avatarLeftUrl;
-            avatarLeftUrl = avatarRightUrl;
-            avatarRightUrl = tempAvatar;
-            
-            // Update preview images
-            const previewLeft = document.getElementById('preview-img-left');
-            const previewRight = document.getElementById('preview-img-right');
-            
-            if(avatarLeftUrl) {
-                previewLeft.src = avatarLeftUrl;
-                previewLeft.style.display = 'block';
-            } else {
-                previewLeft.style.display = 'none';
-            }
-            
-            if(avatarRightUrl) {
-                previewRight.src = avatarRightUrl;
-                previewRight.style.display = 'block';
-            } else {
-                previewRight.style.display = 'none';
-            }
+            // Tukar variabel internal nama
+            const tempName = contactName;
+            contactName = userName;
+            userName = tempName;
             
             updateHeaderAvatarDisplay();
             generateChat();
         }
 
         function generateChat() {
-            const contactName = document.getElementById('contact-name').value.trim();
-            const userName = document.getElementById('user-name').value.trim();
             const chatBox = document.getElementById('chat-box');
-
-            document.getElementById('display-contact-name').innerText = contactName ? contactName : "Nama Kontak";
             updateHeaderAvatarDisplay();
 
             chatBox.innerHTML = "";
@@ -789,23 +742,20 @@ document.getElementById('chat-file').addEventListener('click', function() {
                         messageNode.querySelector('.text-content').innerText = messageContent;
 
                         if (!isSent) {
-                            // Avatar Kiri (Lawan Bicara) ditampilkan di sebelah gelembung chat
                             const miniAvatarNode = document.createElement('div');
                             miniAvatarNode.className = 'mini-avatar';
-                            if (avatarLeftUrl) {
-                                miniAvatarNode.innerHTML = `<img src="${avatarLeftUrl}" alt="Them">`;
+                            if (partnerAvatarUrl) {
+                                miniAvatarNode.innerHTML = `<img src="${partnerAvatarUrl}" alt="Avatar">`;
                             } else {
                                 miniAvatarNode.innerText = sender ? sender.substring(0,2).toUpperCase() : "WA";
                             }
                             rowNode.appendChild(miniAvatarNode);
                         }
 
-                        // Untuk pesan yang dikirim (kanan), avatar kecil DITIADAKAN seperti aslinya
                         rowNode.appendChild(messageNode);
                         chatBox.appendChild(rowNode);
                         lastMessageNode = messageNode; 
                     } else {
-                        // Memasukkan pesan baris baru multi-line (enter)
                         if (lastMessageNode) {
                             const textSpan = lastMessageNode.querySelector('.text-content');
                             if (textSpan) {
@@ -851,11 +801,11 @@ document.getElementById('chat-file').addEventListener('click', function() {
             }
             return dateStr;
         }
-    
-document.getElementById('chat-file').addEventListener('click', function() {
-    this.value = '';
-});
 
-</script>
+        // Reset input file biar bisa upload file yang sama berturut-turut
+        document.getElementById('chat-file').addEventListener('click', function() {
+            this.value = '';
+        });
+    </script>
 </body>
 </html>
